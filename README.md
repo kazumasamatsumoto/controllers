@@ -2,16 +2,25 @@
 
 ## このガイドについて
 
-このガイドでは、NestJSの重要な概念である「コントローラー」について学びます。
+このガイドでは、NestJSの重要な概念である「コントローラー」について、実践的な例を交えながら学びます。猫(Cat)の情報を管理するRESTful APIを作成しながら、コントローラーの基本から応用までを理解していきます。
 
-コントローラーは、クライアントからのリクエストを受け取り、適切なレスポンスを返す役割を担います。NestJSでは、デコレータを使用して直感的にルーティングやリクエスト処理を実装できます。
+## 前提条件
 
-## 前提知識
-
+- Node.js (v16以上)
+- npm (v8以上)
 - JavaScriptの基本的な文法
-- npmの基本的な使い方
-- HTTPリクエスト（GET、POST）の基礎
 - TypeScriptの基本（デコレータ、クラス、型）
+- HTTPリクエスト（GET、POST）の基礎
+
+### 環境別の準備
+
+#### Windows
+
+- PowerShell
+
+#### Mac/Linux
+
+- Terminal
 
 ## 1. プロジェクトの作成
 
@@ -228,109 +237,119 @@ export class CatsController {
 > ベストプラクティス：特に理由がない限り、専用デコレータの使用を推奨します。
 > これにより、コードの意図が明確になり、保守性が向上します。
 
-## 3. 実践的な実装
+## 実践：猫管理APIの実装
 
-ここまでの知識を活用して、実際のブログシステムを作ってみましょう：
-
-```bash
-# 必要なファイルを生成
-nest g resource posts
-```
-
-このコマンドで以下のファイルが生成されます：
-
-- `posts.controller.ts`: リクエストの処理
-- `posts.service.ts`: ビジネスロジック
-- `create-post.dto.ts`: 投稿作成時のデータ形式
-- `update-post.dto.ts`: 投稿更新時のデータ形式
-
-### バリデーションの追加
+### 1. 必要なパッケージのインストール
 
 ```bash
-npm install class-validator class-transformer
+# バリデーション用パッケージのインストール
+npm install --save class-validator class-transformer
 ```
+
+### 2. DTOの作成
 
 ```typescript
-// src/posts/dto/create-post.dto.ts
-import { IsString, IsNumber, MinLength } from 'class-validator';
+// src/cats/dto/create-cat.dto.ts
+import { IsString, IsInt, Min } from 'class-validator';
 
-export class CreatePostDto {
+export class CreateCatDto {
   @IsString()
-  @MinLength(3)
-  title: string;
+  name: string;
+
+  @IsInt()
+  @Min(0)
+  age: number;
 
   @IsString()
-  @MinLength(10)
-  content: string;
-
-  @IsNumber()
-  authorId: number;
+  breed: string;
 }
 ```
 
-### 完全なコントローラーの実装
+### 3. バリデーションの設定
 
 ```typescript
-// src/posts/posts.controller.ts
+// src/main.ts
+import { NestFactory } from '@nestjs/core';
+import { AppModule } from './app.module';
+import { ValidationPipe } from '@nestjs/common';
+
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule);
+  app.useGlobalPipes(new ValidationPipe());
+  await app.listen(3000);
+}
+bootstrap();
+```
+
+### 4. コントローラーの実装
+
+```typescript
+// src/cats/cats.controller.ts
 import {
   Controller,
   Get,
+  Query,
   Post,
   Body,
+  Put,
   Param,
   Delete,
-  Put,
-  Query,
-  HttpException,
-  HttpStatus,
 } from '@nestjs/common';
+import { CreateCatDto } from './dto/create-cat.dto';
 
-@Controller('posts')
-export class PostsController {
-  constructor(private readonly postsService: PostsService) {}
-
+@Controller('cats')
+export class CatsController {
   @Post()
-  async create(@Body() createPostDto: CreatePostDto) {
-    try {
-      return await this.postsService.create(createPostDto);
-    } catch (error) {
-      throw new HttpException(
-        '投稿の作成に失敗しました',
-        HttpStatus.BAD_REQUEST,
-      );
-    }
+  create(@Body() createCatDto: CreateCatDto) {
+    return 'This action adds a new cat';
   }
 
   @Get()
-  async findAll(
-    @Query('page') page: number = 1,
-    @Query('limit') limit: number = 10,
-  ) {
-    return await this.postsService.findAll({ page, limit });
+  findAll(@Query('limit') limit?: number) {
+    return `This action returns all cats (limit: ${limit} items)`;
   }
 
-  // ... 他のメソッド
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return `This action returns a #${id} cat`;
+  }
+
+  @Put(':id')
+  update(@Param('id') id: string, @Body() updateCatDto: any) {
+    return `This action updates a #${id} cat`;
+  }
+
+  @Delete(':id')
+  remove(@Param('id') id: string) {
+    return `This action removes a #${id} cat`;
+  }
 }
 ```
 
-## 4. 動作確認
+### 5. APIのテスト
 
-### サーバーの起動
+環境に応じて以下のコマンドでAPIをテストできます：
 
-```bash
-npm run start:dev
+#### Windows (PowerShell)
+
+```powershell
+# 新しい猫を作成
+Invoke-WebRequest -Uri "http://localhost:3000/cats" -Method POST -Headers @{"Content-Type"="application/json"} -Body '{"name": "タマ", "age": 3, "breed": "雑種"}'
+
+# 全ての猫を取得
+Invoke-WebRequest -Uri "http://localhost:3000/cats" -Method GET
 ```
 
-### APIのテスト
+#### Mac/Linux
 
 ```bash
-# 投稿の作成
-curl -X POST http://localhost:3000/posts \
+# 新しい猫を作成
+curl -X POST http://localhost:3000/cats \
   -H "Content-Type: application/json" \
-  -d '{"title":"はじめての投稿","content":"この投稿はテストです","authorId":1}'
+  -d '{"name": "タマ", "age": 3, "breed": "雑種"}'
 
-# 投稿一覧の取得
-curl http://localhost:3000/posts
+# 全ての猫を取得
+curl http://localhost:3000/cats
 ```
 
 ## 発展的なトピック
@@ -341,8 +360,28 @@ curl http://localhost:3000/posts
 2. インターセプターの使用
 3. バリデーションパイプの実装
 4. ガードによる認証の追加
+5. サブドメインルーティング
+6. マルチテナント対応
 
-## 困ったときは？
+## トラブルシューティング
+
+よくある問題と解決方法：
+
+1. バリデーションエラー
+
+   - DTOの定義を確認
+   - ValidationPipeが正しく設定されているか確認
+
+2. ルーティングエラー
+
+   - コントローラーのデコレータのパスを確認
+   - モジュールへの登録を確認
+
+3. 型エラー
+   - DTOの型定義を確認
+   - TypeScriptの設定を確認
+
+## 参考リンク
 
 - [NestJS公式ドキュメント](https://docs.nestjs.com/)
 - [NestJSの日本語コミュニティ](https://nestjs-jp.com/)
