@@ -159,6 +159,75 @@ findOne(@Param('id') id: string) {
 }
 ```
 
+### リクエストオブジェクトの取得
+
+リクエストの情報を取得する方法は、用途によって2つのアプローチがあります：
+
+![リクエストオブジェクトの取得方法](/request-handling-approaches.svg)
+
+#### 1. リクエストオブジェクト全体が必要な場合
+
+リクエストの全ての情報（ヘッダー、クエリ、ボディ、IPアドレスなど）にアクセスしたい場合は、`@Req()`デコレータを使用します：
+
+```typescript
+import { Controller, Get, Req } from '@nestjs/common';
+import { Request } from 'express';
+
+@Controller('cats')
+export class CatsController {
+  @Get()
+  findAll(@Req() request: Request): string {
+    // リクエストの全情報にアクセス可能
+    console.log(request.headers); // 全てのヘッダー
+    console.log(request.query); // 全てのクエリパラメータ
+    console.log(request.body); // リクエストボディ
+    console.log(request.cookies); // クッキー
+    console.log(request.ip); // クライアントのIP
+    console.log(request.protocol); // プロトコル（http/https）
+    return 'This action returns all cats';
+  }
+}
+```
+
+このアプローチは以下の場合に有用です：
+
+- ロギングやデバッグで詳細な情報が必要な場合
+- カスタムミドルウェアを作成する場合
+- リクエストの複数の部分を同時に処理する場合
+
+#### 2. 特定の情報だけが必要な場合（推奨）
+
+ほとんどの場合、リクエストの特定の部分だけが必要です。そのような場合は、目的に特化した専用デコレータを使用します：
+
+```typescript
+@Controller('cats')
+export class CatsController {
+  @Get(':id')
+  findOne(
+    @Param('id') id: string, // URLパラメータだけを取得
+    @Query('type') type?: string, // 特定のクエリパラメータだけを取得
+  ) {
+    return `Finding cat #${id} of type ${type}`;
+  }
+
+  @Post()
+  create(@Body() createCatDto: CreateCatDto) {
+    // ボディだけを取得
+    return 'This action adds a new cat';
+  }
+}
+```
+
+このアプローチのメリット：
+
+- コードが読みやすく、意図が明確
+- 型安全性が向上（TypeScriptの恩恵を最大限に受けられる）
+- テストが書きやすい（必要な部分だけをモック化できる）
+- 将来的なリファクタリングが容易
+
+> ベストプラクティス：特に理由がない限り、専用デコレータの使用を推奨します。
+> これにより、コードの意図が明確になり、保守性が向上します。
+
 ## 3. 実践的な実装
 
 ここまでの知識を活用して、実際のブログシステムを作ってみましょう：

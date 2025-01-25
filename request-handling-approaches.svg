@@ -1,0 +1,57 @@
+<svg width="800" height="400" xmlns="http://www.w3.org/2000/svg">
+    <!-- 背景 -->
+    <rect width="100%" height="100%" fill="#f8f9fa"/>
+    
+    <!-- タイトル -->
+    <text x="400" y="40" text-anchor="middle" font-size="24" font-weight="bold">
+        リクエストオブジェクトの取得方法
+    </text>
+
+    <!-- 左側: @Req()アプローチ -->
+    <g transform="translate(100,100)">
+        <rect x="0" y="0" width="250" height="200" rx="10" fill="#e9ecef" stroke="#dee2e6"/>
+        <text x="125" y="30" text-anchor="middle" font-weight="bold">
+            @Req()デコレータ
+        </text>
+        <text x="125" y="60" text-anchor="middle" font-size="14">
+            全ての情報を一度に取得
+        </text>
+        
+        <!-- リクエストオブジェクトの内容 -->
+        <rect x="20" y="80" width="210" height="100" rx="5" fill="white" stroke="#ced4da"/>
+        <text x="30" y="100" font-size="12">
+            <tspan x="30" dy="0">request.headers</tspan>
+            <tspan x="30" dy="20">request.query</tspan>
+            <tspan x="30" dy="20">request.body</tspan>
+            <tspan x="30" dy="20">request.cookies</tspan>
+            <tspan x="30" dy="20">その他の情報...</tspan>
+        </text>
+    </g>
+
+    <!-- 右側: 専用デコレータアプローチ -->
+    <g transform="translate(450,100)">
+        <rect x="0" y="0" width="250" height="200" rx="10" fill="#e9ecef" stroke="#dee2e6"/>
+        <text x="125" y="30" text-anchor="middle" font-weight="bold">
+            専用デコレータ（推奨）
+        </text>
+        <text x="125" y="60" text-anchor="middle" font-size="14">
+            必要な情報だけを取得
+        </text>
+        
+        <!-- 専用デコレータの例 -->
+        <rect x="20" y="80" width="210" height="100" rx="5" fill="white" stroke="#ced4da"/>
+        <text x="30" y="100" font-size="12">
+            <tspan x="30" dy="0">@Body() - リクエストボディ</tspan>
+            <tspan x="30" dy="20">@Query() - クエリパラメータ</tspan>
+            <tspan x="30" dy="20">@Param() - URLパラメータ</tspan>
+            <tspan x="30" dy="20">@Headers() - ヘッダー</tspan>
+            <tspan x="30" dy="20">@Ip() - IPアドレス</tspan>
+        </text>
+    </g>
+
+    <!-- 矢印と説明 -->
+    <g transform="translate(370,200)">
+        <line x1="0" y1="0" x2="60" y2="0" stroke="#6c757d" stroke-width="2"/>
+        <polygon points="60,-5 70,0 60,5" fill="#6c757d"/>
+    </g>
+</svg> 
